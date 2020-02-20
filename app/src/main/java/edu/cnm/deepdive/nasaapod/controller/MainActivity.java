@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
       DateTimePickerFragment fragment = new DateTimePickerFragment();
       fragment.setCalendar(calendar);
       fragment.setMode(Mode.DATE);
+      //set listener
       fragment.setOnChangeListener((cal) -> loadApod(cal.getTime()));
       fragment.show(getSupportFragmentManager(), fragment.getClass().getName());
     });
