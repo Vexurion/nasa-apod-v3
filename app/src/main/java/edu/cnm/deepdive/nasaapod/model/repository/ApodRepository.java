@@ -96,7 +96,7 @@ public class ApodRepository {
             .map((body) -> {
               try {
                 return download(body, file);
-              } catch (IOException ex) {
+            } catch (IOException ex) {
                 return apod.getUrl();
               }
             })
