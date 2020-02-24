@@ -103,8 +103,9 @@ public class ApodRecyclerAdapter extends RecyclerView.Adapter<Holder> {
 
   @FunctionalInterface
   public interface ThumbnailResolver {
-    void apply(Apod apod, Consumer<String> consumer);
-  }
 
+    void apply(Apod apod, Consumer<String> consumer);
+
+  }
 
 }

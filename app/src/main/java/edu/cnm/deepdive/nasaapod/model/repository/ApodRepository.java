@@ -1,5 +1,6 @@
 package edu.cnm.deepdive.nasaapod.model.repository;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.os.Environment;
 import androidx.annotation.NonNull;
@@ -74,7 +75,6 @@ public class ApodRepository {
                           return apod;
                         })
                 )
-                .onErrorReturn((throwable) -> null)
                 .subscribe(observer)
         )
         .doAfterSuccess(this::insertAccess);
@@ -89,52 +89,50 @@ public class ApodRepository {
     boolean canBeLocal = (apod.getMediaType() == MediaType.IMAGE);
     File file = canBeLocal ? getFile(apod) : null;
     return Maybe.fromCallable(() ->
-        canBeLocal ? (file.exists() ? file.toURI().toString() : null) : apod.getUrl()
-        )
+        canBeLocal ? (file.exists() ? file.toURI().toString() : null) : apod.getUrl())
         .switchIfEmpty((SingleSource<String>) (observer) ->
             nasa.getFile(apod.getUrl())
-            .map((body) -> {
-              try {
-                return download(body, file);
-            } catch (IOException ex) {
-                return apod.getUrl();
-              }
-            })
-            .subscribeOn(Schedulers.from(networkPool))
-            .subscribe(observer)
+                .map((body) -> {
+                  try {
+                    return download(body, file);
+                  } catch (IOException ex) {
+                    return apod.getUrl();
+                  }
+                })
+                .subscribeOn(Schedulers.from(networkPool))
+                .subscribe(observer)
         );
   }
 
   private String download(ResponseBody body, File file) throws IOException {
-    try(
+    try (
         InputStream input = body.byteStream();
         OutputStream output = new FileOutputStream(file);
-        ) {
+    ) {
       byte[] buffer = new byte[16_384];
-      int bytesRead = 0;
-      while (bytesRead >= 0) {
-        bytesRead = input.read(buffer);
-        if (bytesRead > 0) {
+      int bytesRead;
+      do {
+        if ((bytesRead = input.read(buffer)) > 0) {
           output.write(buffer, 0, bytesRead);
         }
-      }
+      } while (bytesRead >= 0);
       output.flush();
       return file.toURI().toString();
     }
   }
-
 
   private File getFile(@NonNull Apod apod) {
     String url = apod.getUrl();
     File file = null;
     Matcher matcher = URL_FILENAME_PATTERN.matcher(url);
     if (matcher.matches()) {
-      String fileName = String.format(LOCAL_FILENAME_FORMAT, apod.getDate(), matcher.group(1));
+      @SuppressLint("DefaultLocale")
+      String filename = String.format(LOCAL_FILENAME_FORMAT, apod.getDate(), matcher.group(1));
       File directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
       if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState(directory))) {
         directory = context.getFilesDir();
       }
-      file = new File(directory, fileName);
+      file = new File(directory, filename);
     }
     return file;
   }
