@@ -133,7 +133,7 @@ public class ApodRepository {
             copy(input, output);
           } catch (IOException ex) {
             resolver.delete(uri, null, null);
-            // TODO Throw new exception?
+            throw ex;
           }
           return true;
         })
